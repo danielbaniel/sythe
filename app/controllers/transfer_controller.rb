@@ -1,74 +1,41 @@
-class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :edit, :update, :destroy]
-
-  # GET /users
-  # GET /users.json
-  def index
-    @users = User.all
-  end
-
-  # GET /users/1
-  # GET /users/1.json
-  def show
-  end
-
-  # GET /users/new
-  def new
-    @user = User.new
-  end
-
-  # GET /users/1/edit
-  def edit
-  end
-
-  # POST /users
-  # POST /users.json
-  def create
-    @user = User.new(user_params)
-
-    respond_to do |format|
-      if @user.save
-        format.html { redirect_to @user, notice: 'User was successfully created.' }
-        format.json { render :show, status: :created, location: @user }
-      else
-        format.html { render :new }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
-      end
+class TransferController < ApplicationController
+  @error = ActiveModel::Errors.new(self)
+  def transfer
+    p params
+    from_id = params[:from_id]
+    unless from_id && from_id.is_a?(Integer)
+      puts "HERE"
+      render json: @error, status: :unprocessable_entity
+      return
     end
-  end
-
-  # PATCH/PUT /users/1
-  # PATCH/PUT /users/1.json
-  def update
-    respond_to do |format|
-      if @user.update(user_params)
-        format.html { redirect_to @user, notice: 'User was successfully updated.' }
-        format.json { render :show, status: :ok, location: @user }
-      else
-        format.html { render :edit }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
-      end
+    to_id = params[:to_id]
+    puts "TO ID #{to_id}"
+    unless to_id && to_id.is_a?(Integer)
+      puts "HERE"
+      render json: @error, status: :unprocessable_entity
+      return
     end
-  end
-
-  # DELETE /users/1
-  # DELETE /users/1.json
-  def destroy
-    @user.destroy
-    respond_to do |format|
-      format.html { redirect_to users_url, notice: 'User was successfully destroyed.' }
-      format.json { head :no_content }
+    ammount = params[:ammount]
+    unless ammount && ammount.is_a?(Numeric)
+      puts "HERE"
+      render json: @error, status: :unprocessable_entity
+      return
     end
-  end
+    puts from_id
+    puts to_id
+    puts ammount
 
-  private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_user
-      @user = User.find(params[:id])
+    from_user = User.find(from_id)
+    to_user = User.find(to_id)
+
+    unless from_user.account_balance >= ammount
+      render json: @error, status: :unprocessable_entity
+      return
     end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def user_params
-      params.require(:user).permit(:name, :email, :account_balance, :last_known_location)
-    end
+    to_user.account_balance = to_user.account_balance + ammount
+    to_user.save
+
+    render :json => {location: "behind you"}
+  end
 end
