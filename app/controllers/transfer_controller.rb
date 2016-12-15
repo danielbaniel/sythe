@@ -36,6 +36,6 @@ class TransferController < ApplicationController
     to_user.account_balance = to_user.account_balance + ammount
     to_user.save
 
-    render :json => {location: "behind you"}
+    render :json => {status: "success"}
   end
 end
