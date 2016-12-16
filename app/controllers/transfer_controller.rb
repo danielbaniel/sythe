@@ -26,6 +26,8 @@ class TransferController < ApplicationController
       return render json: error, status: :unprocessable_entity
     end
 
+    from_user.account_balance = from_user.account_balance - ammount
+    from_user.save
     to_user.account_balance = to_user.account_balance + ammount
     to_user.save
 
